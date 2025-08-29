@@ -1,0 +1,136 @@
+templates:
+  - template: subreddit
+    columns:
+      - {key: ts, label: Time}
+      - {key: title, label: Title}
+      - {key: score, label: Score}
+      - {key: url, label: Link}
+    sort: {key: ts, dir: desc}
+    max_rows: 150
+  - template: rss
+    columns:
+      - { key: ts,     label: Time }
+      - { key: title,  label: Title }
+      - { key: source, label: Source }
+      - { key: url,    label: Link }
+    sort: { key: ts, dir: desc }
+    max_rows: 400
+  - template: legistar_meetings
+    columns:
+      - {key: ts,              label: Date/Time }
+      - {key: body_name,       label: Body }
+      - {key: title,           label: Meeting }
+      - {key: location,        label: Location }
+      - {key: meeting_time,    label: Time }
+      - {key: url,             label: Meeting Details }
+      - {key: agenda_url,      label: Agenda }
+    sort: { key: ts, dir: desc }
+    max_rows: 200
+
+sources:
+  # Subreddits
+  - module: subreddit
+    template: subreddit
+    stream: "Boston"
+    interval_seconds: 900
+    config:
+      subreddit: "boston"
+      listing: "new"
+      limit: 10
+  - module: subreddit
+    template: subreddit
+    stream: "Massachusetts Politics"
+    interval_seconds: 900
+    config:
+      subreddit: "MassachusettsPolitics"
+      listing: "new"
+      limit: 10
+  - module: subreddit
+    template: subreddit
+    stream: "Massachusetts"
+    interval_seconds: 900
+    config:
+      subreddit: "massachusetts"
+      listing: "new"
+      limit: 10
+  - module: subreddit
+    template: subreddit
+    stream: "MBTA"
+    interval_seconds: 900
+    config:
+      subreddit: "mbta"
+      listing: "new"
+      limit: 10
+  - module: subreddit
+    template: subreddit
+    stream: "Cambridge"
+    interval_seconds: 900
+    config:
+      subreddit: "CambridgeMA"
+      listing: "new"
+      limit: 10
+  - module: subreddit
+    template: subreddit
+    stream: "Somerville"
+    interval_seconds: 900
+    config:
+      subreddit: "Somerville"
+      listing: "new"
+      limit: 10
+  - module: subreddit
+    template: subreddit
+    stream: "Worcester"
+    interval_seconds: 900
+    config:
+      subreddit: "WorcesterMA"
+      listing: "new"
+      limit: 10
+  - module: subreddit
+    template: subreddit
+    stream: "Newton"
+    interval_seconds: 900
+    config:
+      subreddit: "newtonma"
+      listing: "new"
+      limit: 10
+
+  # RSS Feeds
+  - module: rss
+    template: rss
+    stream: "Boston.com"
+    interval_seconds: 900
+    config:
+      url: "https://www.boston.com/feed/"
+      limit: 10
+  - module: rss
+    template: rss
+    stream: "Massachusetts Playbook"
+    interval_seconds: 900
+    config:
+      url: "https://rss.politico.com/massachusetts-playbook.xml"
+      limit: 10
+  - module: rss
+    template: rss
+    stream: "Universal Hub"
+    interval_seconds: 900
+    config:
+      url: "https://uhub-direct.ghost.io/rss/"
+      limit: 40
+  - module: rss
+    template: rss
+    stream: "Western Mass Politics & Insight"
+    interval_seconds: 900
+    config:
+      url: "https://wmasspi.com/feed"
+      limit: 40
+
+  # 2b) Boston Legistar Meeting Details (scrapes meeting pages for full info)
+  - module: legistar_meetings
+    template: legistar_meetings
+    stream: boston-legistar-meetings
+    interval_seconds: 3600
+    config:
+      url: "https://boston.legistar.com"
+      meeting_list_url: "Calendar.aspx"
+      limit: 100
+      mode: "replace"

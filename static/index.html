@@ -1,0 +1,59 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Realtime Dashboard (MWE)</title>
+    <link rel="stylesheet" href="/static/app.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Realtime Dashboard</h1>
+      <div class="header-info">
+        <div id="total-sources">0 sources</div>
+        <div id="status">Connecting…</div>
+      </div>
+    </header>
+
+    <main id="root">
+      <div class="tabs-container">
+        <div class="tabs-header">
+          <div class="tabs-list" id="tabs-list"></div>
+          <div class="tabs-content" id="tabs-content"></div>
+        </div>
+      </div>
+    </main>
+
+    <template id="table-template">
+      <section class="card">
+        <div class="card-header">
+          <div class="card-title-section">
+            <button class="collapse-btn" aria-label="Collapse/Expand">▼</button>
+            <h2 class="card-title"></h2>
+          </div>
+          <div class="card-actions">
+            <div class="query-section">
+              <div class="query-input-wrapper">
+                <input type="text" class="query-input" placeholder="Ask the LLM anything..." />
+                <div class="query-suggestions" hidden></div>
+              </div>
+              <button class="custom-query">Ask</button>
+            </div>
+            <button class="summarize">Summarize</button>
+          </div>
+        </div>
+        <div class="card-content collapsed">
+          <div class="table-wrap">
+            <table>
+              <thead></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <pre class="insights" hidden></pre>
+        </div>
+      </section>
+    </template>
+
+    <script src="/static/app.js" defer></script>
+  </body>
+</html>
