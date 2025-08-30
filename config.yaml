@@ -121,6 +121,22 @@ sources:
       limit: 10
   - module: rss
     template: rss
+    stream: "Boston Herald"
+    tags: ["news", "politics", "beacon hill", "laws", "conservative"]
+    interval_seconds: 900
+    config:
+      url: "https://www.bostonherald.com/news/politics/feed/"
+      limit: 10
+  - module: rss
+    template: rss
+    stream: "Howie Carr Show"
+    tags: ["news", "gossip", "conservative"]
+    interval_seconds: 900
+    config:
+      url: "https://howiecarrshow.com/feed/"
+      limit: 10
+  - module: rss
+    template: rss
     stream: "Universal Hub"
     tags: ["news", "politics", "gossip", "mbta", "beacon hill", "blog"]
     interval_seconds: 900
