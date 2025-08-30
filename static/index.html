@@ -28,7 +28,11 @@
           <select id="llm-scope" class="llm-scope-select">
             <option value="current">Current Open Group</option>
             <option value="all">All Feeds</option>
+            <option value="tags">By Tags</option>
           </select>
+          <select id="llm-tags" class="llm-tags-select" hidden multiple>
+          </select>
+          <div class="llm-tags-help" hidden>Hold Ctrl/Cmd to select multiple tags</div>
           <input 
             type="number" 
             id="llm-limit" 
@@ -86,7 +90,16 @@
               </div>
               <button class="custom-query">Ask</button>
             </div>
-            <button class="summarize">Summarize</button>
+            <div class="summarize-section">
+              <select class="summarize-type-select">
+                <option value="current">Current Tab</option>
+                <option value="tags">By Tags</option>
+              </select>
+              <select class="tags-dropdown" hidden multiple>
+              </select>
+              <div class="tags-help" hidden>Hold Ctrl/Cmd to select multiple tags</div>
+              <button class="summarize">Summarize</button>
+            </div>
           </div>
         </div>
         <div class="card-content collapsed">

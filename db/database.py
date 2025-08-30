@@ -2,6 +2,7 @@
 
 import sqlite3
 import json
+import yaml
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 import logging
@@ -315,6 +316,85 @@ class Database:
             logger.error(f"Failed to get stats: {e}")
             raise
     
+    def _read_config_tags(self) -> List[str]:
+        """Read available tags from config.yaml file."""
+        try:
+            config_path = Path("config.yaml")
+            if not config_path.exists():
+                logger.warning("config.yaml not found, returning empty tags list")
+                return []
+            
+            with open(config_path, 'r', encoding='utf-8') as f:
+                config = yaml.safe_load(f)
+            
+            # Extract all unique tags from sources
+            all_tags = set()
+            if 'sources' in config:
+                for source in config['sources']:
+                    if 'tags' in source and isinstance(source['tags'], list):
+                        all_tags.update(source['tags'])
+            
+            return sorted(list(all_tags))
+            
+        except Exception as e:
+            logger.error(f"Failed to read config tags: {e}")
+            return []
+    
+    def get_available_tags(self) -> List[str]:
+        """Get all available tags from config.yaml file."""
+        return self._read_config_tags()
+    
+    def get_queries_by_tags(self, tags: List[str], limit: int = 100) -> List[Dict[str, Any]]:
+        """Get queries that have any of the specified tags."""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                conn.row_factory = sqlite3.Row
+                cursor = conn.cursor()
+                
+                # Create placeholders for the IN clause
+                placeholders = ','.join(['?' for _ in tags])
+                
+                cursor.execute(f"""
+                    SELECT * FROM llm_queries
+                    WHERE tags IS NOT NULL AND tags != 'null'
+                    AND (
+                        {' OR '.join([f"tags LIKE '%\"{tag}\"%'" for tag in tags])}
+                    )
+                    ORDER BY created_at DESC
+                    LIMIT ?
+                """, [limit])
+                
+                rows = cursor.fetchall()
+                return [dict(row) for row in rows]
+                
+        except Exception as e:
+            logger.error(f"Failed to get queries by tags: {e}")
+            return []
+    
+    def get_outputs_by_tags(self, tags: List[str], limit: int = 100) -> List[Dict[str, Any]]:
+        """Get outputs that have any of the specified tags."""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                conn.row_factory = sqlite3.Row
+                cursor = conn.cursor()
+                
+                cursor.execute(f"""
+                    SELECT * FROM llm_outputs
+                    WHERE tags IS NOT NULL AND tags != 'null'
+                    AND (
+                        {' OR '.join([f"tags LIKE '%\"{tag}\"%'" for tag in tags])}
+                    )
+                    ORDER BY created_at DESC
+                    LIMIT ?
+                """, [limit])
+                
+                rows = cursor.fetchall()
+                return [dict(row) for row in rows]
+                
+        except Exception as e:
+            logger.error(f"Failed to get outputs by tags: {e}")
+            return []
+    
     def migrate_from_json(self, json_file_path: str):
         """Migrate existing queries from JSON file to database."""
         try:
@@ -342,6 +422,42 @@ class Database:
         except Exception as e:
             logger.error(f"Failed to migrate from JSON: {e}")
             raise
+    
+    def insert_sample_tags(self):
+        """Insert some sample tags for testing purposes."""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                
+                # Check if we already have some tags
+                cursor.execute("SELECT COUNT(*) FROM llm_queries WHERE tags IS NOT NULL AND tags != 'null'")
+                existing_tags_count = cursor.fetchone()[0]
+                
+                if existing_tags_count == 0:
+                    # Insert some sample queries with tags
+                    sample_queries = [
+                        ("Analyze recent technology trends", "sample", "tech", "tech_news", ["technology", "trends", "analysis"]),
+                        ("Summarize business insights", "sample", "business", "insights", ["business", "insights", "summary"]),
+                        ("Review latest developments", "sample", "general", "updates", ["development", "latest", "review"]),
+                        ("Compare different approaches", "sample", "analysis", "comparison", ["comparison", "analysis", "approaches"]),
+                        ("Identify key patterns", "sample", "research", "patterns", ["patterns", "research", "identification"])
+                    ]
+                    
+                    for query, source, template, stream, tags in sample_queries:
+                        cursor.execute("""
+                            INSERT INTO llm_queries 
+                            (query, source, template, stream, tags)
+                            VALUES (?, ?, ?, ?, ?)
+                        """, (query, source, template, stream, json.dumps(tags)))
+                    
+                    conn.commit()
+                    logger.info("Inserted sample tags for testing")
+                else:
+                    logger.info("Sample tags already exist, skipping insertion")
+                    
+        except Exception as e:
+            logger.error(f"Failed to insert sample tags: {e}")
+            # Don't raise here as this is just for testing
 
 
 # Global database instance

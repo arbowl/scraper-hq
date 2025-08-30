@@ -145,6 +145,14 @@ sources:
       limit: 40
   - module: rss
     template: rss
+    stream: "MassGOP"
+    tags: ["politics", "conservative"]
+    interval_seconds: 900
+    config:
+      url: "https://massgop.com/feed"
+      limit: 40
+  - module: rss
+    template: rss
     stream: "Western Mass Politics & Insight"
     tags: ["news", "politics", "mbta", "beacon hill", "blog", "western mass"]
     interval_seconds: 900
