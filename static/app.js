@@ -545,4 +545,281 @@ async function boot() {
   };
 }
 
+// LLM Analysis Bar Functionality
+let currentBatchAnalysis = null;
+
+// Get DOM elements
+const globalLLMQuery = document.getElementById('global-llm-query');
+const llmScope = document.getElementById('llm-scope');
+const llmLimit = document.getElementById('llm-limit');
+const runBatchBtn = document.getElementById('run-batch-llm');
+const llmProgress = document.getElementById('llm-progress');
+const progressFill = document.getElementById('progress-fill');
+const progressText = document.getElementById('progress-text');
+const llmResults = document.getElementById('llm-results');
+const resultsSummary = document.getElementById('results-summary');
+const serializedOutput = document.getElementById('serialized-output');
+const copySerializedBtn = document.getElementById('copy-serialized');
+const closeResultsBtn = document.getElementById('close-results');
+
+// Event listeners
+runBatchBtn.addEventListener('click', runBatchLLMAnalysis);
+copySerializedBtn.addEventListener('click', copySerializedOutput);
+closeResultsBtn.addEventListener('click', closeResults);
+
+// Handle Enter key in query input
+globalLLMQuery.addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') {
+    runBatchLLMAnalysis();
+  }
+});
+
+// Handle scope change to show/hide template/stream inputs
+llmScope.addEventListener('change', updateScopeInputs);
+
+function updateScopeInputs() {
+  const scope = llmScope.value;
+  if (scope === 'current') {
+    // Show template/stream selection for current scope
+    // This could be enhanced to show dropdowns for available templates/streams
+    console.log('Current scope selected - will use active tab');
+  } else {
+    // All feeds scope - no specific template/stream needed
+    console.log('All feeds scope selected');
+  }
+}
+
+async function runBatchLLMAnalysis() {
+  const query = globalLLMQuery.value.trim();
+  if (!query) {
+    alert('Please enter a query');
+    return;
+  }
+
+  const scope = llmScope.value;
+  
+  // More detailed debugging
+  console.log('Limit input element:', llmLimit);
+  console.log('Limit input value:', llmLimit.value);
+  console.log('Limit input type:', typeof llmLimit.value);
+  console.log('Parsed limit:', parseInt(llmLimit.value));
+  console.log('Is NaN:', isNaN(parseInt(llmLimit.value)));
+  
+  const limit = Math.max(1, parseInt(llmLimit.value) || 10);
+  console.log('Final limit:', limit);
+
+  // Determine template and stream for current scope
+  let template = null;
+  let stream = null;
+  
+  if (scope === 'current' && activeTab) {
+    // Use the currently active tab's template
+    template = activeTab;
+    
+    // For current scope, we'll process all streams within the template
+    // No need to specify a single stream
+    stream = null;
+  }
+
+  // Disable inputs and show progress
+  setInputsEnabled(false);
+  showProgress();
+  
+  try {
+    const requestBody = {
+      query: query,
+      scope: scope,
+      template: template,
+      stream: stream,
+      limit: limit
+    };
+
+         console.log('Starting batch LLM analysis:', requestBody);
+     console.log('Active tab:', activeTab);
+     console.log('Available templates in buffers:', Object.keys(buffers));
+    
+    // Use the streaming endpoint for real-time progress
+    const response = await fetch('/batch-llm-stream', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(requestBody)
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    // Handle streaming response for real-time progress
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let finalResult = null;
+    
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      
+      const chunk = decoder.decode(value);
+      const lines = chunk.split('\n');
+      
+             for (const line of lines) {
+         if (line.startsWith('data: ')) {
+           try {
+             const data = JSON.parse(line.slice(6));
+             console.log('Received streaming data:', data); // Debug logging
+             
+             if (data.type === 'progress') {
+               // Update progress bar with real data
+               updateProgress(data.progress, data.message);
+             } else if (data.type === 'item_complete') {
+               // Item completed - could show additional info
+               console.log(`Item ${data.item_index + 1} completed:`, data);
+             } else if (data.type === 'item_error') {
+               // Item failed - could show error info
+               console.warn(`Item ${data.item_index + 1} failed:`, data.error);
+             } else if (data.type === 'complete') {
+               // Analysis complete
+               console.log('Received completion event:', data); // Debug logging
+               finalResult = data;
+               updateProgress(100, 'Analysis complete!');
+             } else if (data.type === 'error') {
+               throw new Error(data.error);
+             }
+           } catch (e) {
+             console.warn('Failed to parse streaming data:', e);
+           }
+         }
+       }
+    }
+    
+    if (finalResult) {
+      console.log('Batch LLM analysis completed:', finalResult);
+      showResults(finalResult);
+    } else {
+      throw new Error('No completion data received');
+    }
+    
+  } catch (error) {
+    console.error('Error running batch LLM analysis:', error);
+    alert(`Error: ${error.message}`);
+  } finally {
+    // Re-enable inputs and hide progress
+    setInputsEnabled(true);
+    hideProgress();
+  }
+}
+
+function setInputsEnabled(enabled) {
+  globalLLMQuery.disabled = !enabled;
+  llmScope.disabled = !enabled;
+  llmLimit.disabled = !enabled;
+  runBatchBtn.disabled = !enabled;
+}
+
+function showProgress() {
+  llmProgress.hidden = false;
+  progressFill.style.width = '0%';
+  progressText.textContent = 'Starting analysis...';
+}
+
+function updateProgress(progress, message) {
+  // Update progress bar with real data
+  progressFill.style.width = `${progress}%`;
+  progressText.textContent = message || `Processing... ${progress}%`;
+}
+
+function hideProgress() {
+  llmProgress.hidden = true;
+}
+
+function showResults(result) {
+  // Update summary
+  const summary = `
+    <strong>Analysis Complete!</strong><br>
+    Query: "${result.query || 'Batch Analysis'}"<br>
+    Total items processed: ${result.processed_items}/${result.total_items}<br>
+    Batch ID: ${result.batch_query_id}
+  `;
+  resultsSummary.innerHTML = summary;
+  
+  // Update serialized output
+  serializedOutput.textContent = result.serialized_output;
+  
+  // Show results section
+  llmResults.hidden = false;
+  
+  // Scroll to results
+  llmResults.scrollIntoView({ behavior: 'smooth' });
+}
+
+function copySerializedOutput() {
+  const text = serializedOutput.textContent;
+  
+  // Try modern clipboard API first
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(() => {
+      showCopySuccess();
+    }).catch(err => {
+      console.error('Failed to copy text: ', err);
+      fallbackCopyTextToClipboard(text);
+    });
+  } else {
+    // Fallback for HTTP or older browsers
+    fallbackCopyTextToClipboard(text);
+  }
+}
+
+function fallbackCopyTextToClipboard(text) {
+  // Create a temporary textarea element
+  const textArea = document.createElement('textarea');
+  textArea.value = text;
+  
+  // Make it invisible
+  textArea.style.position = 'fixed';
+  textArea.style.left = '-999999px';
+  textArea.style.top = '-999999px';
+  
+  document.body.appendChild(textArea);
+  textArea.focus();
+  textArea.select();
+  
+  try {
+    const successful = document.execCommand('copy');
+    if (successful) {
+      showCopySuccess();
+    } else {
+      // If execCommand fails, show the text in an alert for manual copying
+      alert('Copy failed. Here\'s the text to copy manually:\n\n' + text);
+    }
+  } catch (err) {
+    console.error('Fallback copy failed: ', err);
+    // Show the text in an alert for manual copying
+    alert('Copy failed. Here\'s the text to copy manually:\n\n' + text);
+  }
+  
+  document.body.removeChild(textArea);
+}
+
+function showCopySuccess() {
+  // Show temporary success message
+  const originalText = copySerializedBtn.textContent;
+  copySerializedBtn.textContent = 'Copied!';
+  copySerializedBtn.style.background = '#28a745';
+  
+  setTimeout(() => {
+    copySerializedBtn.textContent = originalText;
+    copySerializedBtn.style.background = '';
+  }, 2000);
+}
+
+function closeResults() {
+  llmResults.hidden = true;
+  // Clear the query input
+  globalLLMQuery.value = '';
+}
+
+// Initialize scope inputs
+updateScopeInputs();
+
 boot();

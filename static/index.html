@@ -15,6 +15,53 @@
       </div>
     </header>
 
+    <!-- Global LLM Analysis Bar -->
+    <div class="llm-analysis-bar">
+      <div class="llm-bar-content">
+        <div class="llm-input-section">
+          <input 
+            type="text" 
+            id="global-llm-query" 
+            class="global-llm-input" 
+            placeholder="Ask the LLM to analyze multiple items..."
+          />
+          <select id="llm-scope" class="llm-scope-select">
+            <option value="current">Current Open Group</option>
+            <option value="all">All Feeds</option>
+          </select>
+          <input 
+            type="number" 
+            id="llm-limit" 
+            class="llm-limit-input" 
+            value="10" 
+            min="1" 
+            max="100" 
+            title="Number of items to analyze"
+          />
+          <button id="run-batch-llm" class="run-batch-btn">Run Analysis</button>
+        </div>
+        <div class="llm-progress" id="llm-progress" hidden>
+          <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill"></div>
+          </div>
+          <div class="progress-text" id="progress-text">Processing...</div>
+        </div>
+      </div>
+      
+      <!-- Results Section -->
+      <div class="llm-results" id="llm-results" hidden>
+        <div class="results-header">
+          <h3>Analysis Results</h3>
+          <button id="copy-serialized" class="copy-btn">Copy Serialized Output</button>
+          <button id="close-results" class="close-btn">×</button>
+        </div>
+        <div class="results-content">
+          <div class="results-summary" id="results-summary"></div>
+          <div class="serialized-output" id="serialized-output"></div>
+        </div>
+      </div>
+    </div>
+
     <main id="root">
       <div class="tabs-container">
         <div class="tabs-header">

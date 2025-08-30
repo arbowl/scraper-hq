@@ -32,6 +32,7 @@ sources:
   - module: subreddit
     template: subreddit
     stream: "Boston"
+    tags: ["boston", "gossip"]
     interval_seconds: 900
     config:
       subreddit: "boston"
@@ -40,6 +41,7 @@ sources:
   - module: subreddit
     template: subreddit
     stream: "Massachusetts Politics"
+    tags: ["politics", "gossip"]
     interval_seconds: 900
     config:
       subreddit: "MassachusettsPolitics"
@@ -48,6 +50,7 @@ sources:
   - module: subreddit
     template: subreddit
     stream: "Massachusetts"
+    tags: ["gossip"]
     interval_seconds: 900
     config:
       subreddit: "massachusetts"
@@ -56,6 +59,7 @@ sources:
   - module: subreddit
     template: subreddit
     stream: "MBTA"
+    tags: ["mbta", "gossip"]
     interval_seconds: 900
     config:
       subreddit: "mbta"
@@ -64,6 +68,7 @@ sources:
   - module: subreddit
     template: subreddit
     stream: "Cambridge"
+    tags: ["cambridge", "gossip"]
     interval_seconds: 900
     config:
       subreddit: "CambridgeMA"
@@ -72,6 +77,7 @@ sources:
   - module: subreddit
     template: subreddit
     stream: "Somerville"
+    tags: ["somerville", "gossip"]
     interval_seconds: 900
     config:
       subreddit: "Somerville"
@@ -80,6 +86,7 @@ sources:
   - module: subreddit
     template: subreddit
     stream: "Worcester"
+    tags: ["worcester", "gossip"]
     interval_seconds: 900
     config:
       subreddit: "WorcesterMA"
@@ -88,6 +95,7 @@ sources:
   - module: subreddit
     template: subreddit
     stream: "Newton"
+    tags: ["newton", "gossip"]
     interval_seconds: 900
     config:
       subreddit: "newtonma"
@@ -98,6 +106,7 @@ sources:
   - module: rss
     template: rss
     stream: "Boston.com"
+    tags: ["boston", "news", "politics"]
     interval_seconds: 900
     config:
       url: "https://www.boston.com/feed/"
@@ -105,6 +114,7 @@ sources:
   - module: rss
     template: rss
     stream: "Massachusetts Playbook"
+    tags: ["news", "politics", "beacon hill", "laws"]
     interval_seconds: 900
     config:
       url: "https://rss.politico.com/massachusetts-playbook.xml"
@@ -112,6 +122,7 @@ sources:
   - module: rss
     template: rss
     stream: "Universal Hub"
+    tags: ["news", "politics", "gossip", "mbta", "beacon hill", "blog"]
     interval_seconds: 900
     config:
       url: "https://uhub-direct.ghost.io/rss/"
@@ -119,15 +130,17 @@ sources:
   - module: rss
     template: rss
     stream: "Western Mass Politics & Insight"
+    tags: ["news", "politics", "mbta", "beacon hill", "blog", "western mass"]
     interval_seconds: 900
     config:
       url: "https://wmasspi.com/feed"
       limit: 40
-
-  # 2b) Boston Legistar Meeting Details (scrapes meeting pages for full info)
+  
+  # Legistar
   - module: legistar_meetings
     template: legistar_meetings
     stream: boston-legistar-meetings
+    tags: ["news", "politics", "mbta", "beacon hill", "official", "boston"]
     interval_seconds: 3600
     config:
       url: "https://boston.legistar.com"
