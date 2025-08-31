@@ -26,6 +26,16 @@ templates:
       - {key: agenda_url,      label: Agenda }
     sort: { key: ts, dir: desc }
     max_rows: 200
+  - template: ma_legislature_bills
+    columns:
+      - {key: ts,              label: Time }
+      - {key: bill_number,     label: Bill Number }
+      - {key: bill_title,      label: Title }
+      - {key: table_type,      label: Type }
+      - {key: source,          label: Source }
+      - {key: url,             label: Bill Details }
+    sort: { key: ts, dir: desc }
+    max_rows: 150
 
 sources:
   # Subreddits
@@ -110,7 +120,7 @@ sources:
     interval_seconds: 900
     config:
       url: "https://www.boston.com/feed/"
-      limit: 10
+      limit: 20
   - module: rss
     template: rss
     stream: "Massachusetts Playbook"
@@ -118,7 +128,7 @@ sources:
     interval_seconds: 900
     config:
       url: "https://rss.politico.com/massachusetts-playbook.xml"
-      limit: 10
+      limit: 20
   - module: rss
     template: rss
     stream: "Boston Herald"
@@ -126,7 +136,7 @@ sources:
     interval_seconds: 900
     config:
       url: "https://www.bostonherald.com/news/politics/feed/"
-      limit: 10
+      limit: 20
   - module: rss
     template: rss
     stream: "Howie Carr Show"
@@ -134,7 +144,7 @@ sources:
     interval_seconds: 900
     config:
       url: "https://howiecarrshow.com/feed/"
-      limit: 10
+      limit: 20
   - module: rss
     template: rss
     stream: "Universal Hub"
@@ -142,7 +152,7 @@ sources:
     interval_seconds: 900
     config:
       url: "https://uhub-direct.ghost.io/rss/"
-      limit: 40
+      limit: 20
   - module: rss
     template: rss
     stream: "MassGOP"
@@ -150,7 +160,7 @@ sources:
     interval_seconds: 900
     config:
       url: "https://massgop.com/feed"
-      limit: 40
+      limit: 10
   - module: rss
     template: rss
     stream: "Western Mass Politics & Insight"
@@ -158,8 +168,16 @@ sources:
     interval_seconds: 900
     config:
       url: "https://wmasspi.com/feed"
-      limit: 40
-  
+      limit: 10
+  - module: rss
+    template: rss
+    stream: "Progressive Democrats of Massachusetts"
+    tags: ["politics", "beacon hill", "blog", "progressive"]
+    interval_seconds: 900
+    config:
+      url: "https://progressivedemsofmass.wordpress.com/blog/feed/"
+      limit: 10
+
   # Legistar
   - module: legistar_meetings
     template: legistar_meetings
@@ -170,4 +188,15 @@ sources:
       url: "https://boston.legistar.com"
       meeting_list_url: "Calendar.aspx"
       limit: 100
+      mode: "replace"
+
+  # Massachusetts Legislature Bills
+  - module: ma_legislature_bills
+    template: ma_legislature_bills
+    stream: "Massachusetts Legislature Bills"
+    tags: ["news", "politics", "beacon hill", "laws", "official", "legislation"]
+    interval_seconds: 3600
+    config:
+      url: "https://malegislature.gov/Bills/RecentBills"
+      limit: 40
       mode: "replace"
